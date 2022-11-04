@@ -34,10 +34,20 @@ var VoronoiPicture = {
 		this.opt = opt; 
 		this.canvas = document.getElementById(canvasId);
 		this.ctx = this.canvas.getContext('2d');		
-		this.bbox = {xl: 0,xr: this.canvas.offsetWidth,yt: 0,yb: this.canvas.offsetHeight};
+		this.bbox = {xl: 0,xr: this.canvas.offsetWidth,yt: 0,yb: this.canvas.offsetHeight};		
+		this.random_sites();
+		this.behavior();
+		this.render();
+	},
+	random_sites:function(){
+		console.log('random_sites')
 		this.sites = this.createSites(this.opt.sites_grid,this.opt.sites_amount);
+		this.diagram && this.voronoi.recycle(this.diagram);
 		this.diagram = this.voronoi.compute(this.sites, this.bbox);
 		this.render();
+	},
+	behavior:function() {
+		document.addEventListener('mouseup',(event)=>{this.random_sites();});
 	},
 	createSites:function(grid,amount) {
 		var arr = []; 
@@ -73,8 +83,7 @@ var VoronoiPicture = {
         if (!this.diagram) {return;}
         // --- edges ---
         this.ctx.beginPath();
-        this.ctx.strokeStyle = 'white';
-        
+        this.ctx.strokeStyle = 'white';        
         var edges = this.diagram.edges;
         for(var i in edges){
         	var edge = edges[i];
@@ -110,6 +119,6 @@ VoronoiPicture.init('canvas-1',{sites_grid:10,sites_amount:10});
 
 </script>
 
-
+<p>Click mouse to recalc Voronoi diagram</p>
 
 </body></html>
