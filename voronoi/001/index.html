@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+  <meta charset="utf-8">
+  
+  
+<script type="text/javascript" src="rhill-voronoi-core.js"></script>
+
+  <title>Voronoi</title>
+
+  <style>
+  	
+  	#canvas-1{
+  		background: gold;
+  	}
+
+  </style>
+</head>
+  <body class="fullscreen" style="">
+    
+
+
+<article>
+
+
+
+<canvas resize="true" id="canvas-1" width="400" height="600" 
+	style="-webkit-user-drag: none; user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+</canvas>
+
+
+<script>
+
+// var canvas = document.getElementById('canvas-1');
+// var CANVAS_SIZE = {width:canvas.offsetWidth,height:canvas.offsetHeight};
+// var ctx = canvas.getContext('2d');
+
+
+// var foo = {
+// 		createSites:function(grid,amount) {
+// 			var arr = []; 
+// 			var stepX = CANVAS_SIZE.width/grid;
+// 			var stepY = CANVAS_SIZE.height/grid;
+// 			for(var i=stepX;i<stepX*grid;i+=stepX){
+// 				for(var j=stepY;j<stepY*grid;j+=stepY){
+// 						arr.push({x:i,y:j});							
+// 				}
+// 			};
+// 			arr.sort(() => .5 - Math.random());
+// 			console.log('arr',arr)
+// 			var total = Math.min(amount,arr.length);
+// 			return arr.splice(0,total);
+// 		},
+// 		drawPoints:function(arr){
+// 			for(var i in arr){
+// 				ctx.fillRect(arr[i].x,arr[i].y,6,6); // fill in the pixel at (10,10)	
+// 			}
+// 		},
+// 		renderDiagram:function() {
+				
+// 				var diagram = voronoi.compute(sites, bbox);
+// 				if (!diagram) return; 
+// 				console.log('bbox',bbox)
+// 				console.log('diagram',diagram)
+
+// 				for (var i = 0, l = sites.length; i < l; i++) {
+// 					console.log('sites.length',sites.length)
+// 					var cell = diagram.cells[sites[i].voronoiId];
+
+// 					console.log('cell',cell)
+// 					if (cell) {
+// 						var halfedges = cell.halfedges,
+// 							length = halfedges.length;
+// 						if (length > 2) {
+// 							var points = [];
+// 							for (var j = 0; j < length; j++) {
+// 								v = halfedges[j].getEndpoint();								
+// 								points.push(v);
+// 							}
+// 							foo.createPath(points, sites[i]);
+// 						}
+// 					}
+// 				}
+// 		},
+// 		createPath:function(points,site) {
+// 			console.log('points',points)
+// 			console.log('site',site)
+// 			ctx.fillStyle = '#ff00ff';
+// 			ctx.beginPath();
+// 			ctx.moveTo(0, 0);
+// 			for (var i=0;i<points.length;i++){
+// 				ctx.lineTo(points[i].x,points[i].y);
+// 			}
+// 			ctx.closePath();
+// 			ctx.stroke();
+// 		}
+// };
+
+
+// var voronoi =  new Voronoi();
+// var sites = foo.createSites(10,4);
+// foo.drawPoints(sites);
+	
+// var bbox = {xl: 0,xr: CANVAS_SIZE.width,yt: 0,yb: CANVAS_SIZE.height};
+// foo.renderDiagram();
+
+
+
+/////---------------------------------------
+
+
+var VoronoiDemo = {
+    voronoi: new Voronoi(),
+    sites: [],
+    diagram: null,
+    margin: 0.15,
+    canvas: null,
+    bbox: {xl:0,xr:800,yt:0,yb:600},
+    benchmarkTimer: null,
+    benchmarkTimes: new Array(50),
+    benchmarkPointer: 0,
+    benchmarkMaxSites: 100,
+
+    init: function() {
+        this.canvas = document.getElementById('canvas-1');
+        this.randomSites(100,true);
+        this.render();
+        },
+
+    benchmarkToggle: function() {
+        if ( this.benchmarkTimer ) {
+            this.benchmarkStop();
+            }
+        else {
+            this.benchmarkStart();
+            }
+        },
+
+    benchmarkStart: function() {
+        this.benchmarkMaxSites = Math.floor(parseFloat(document.getElementById('voronoiNumberSites').value));
+        this.benchmarkPointer = 0;
+        this.benchmarkTimer = setTimeout(this.benchmarkDo, 250);
+        document.getElementById('voronoiBenchmark').value = 'Stop';
+        },
+
+    benchmarkDo: function() {
+        var vd = VoronoiDemo;
+        vd.randomSites(vd.benchmarkMaxSites, true);
+        vd.render();
+        vd.benchmarkTimes[vd.benchmarkPointer] = vd.diagram.execTime;
+        vd.benchmarkPointer++;
+        if ( vd.benchmarkPointer < vd.benchmarkTimes.length ) {
+            document.getElementById('benchmarkResult').innerHTML = new Array(vd.benchmarkTimes.length-vd.benchmarkPointer+1).join('.');
+            vd.benchmarkTimer = setTimeout(vd.benchmarkDo, 250);
+            }
+        else {
+            vd.benchmarkStop();
+            }
+        },
+
+    benchmarkStop: function() {
+        if ( this.benchmarkTimer ) {
+            clearTimeout(this.benchmarkTimer);
+            this.benchmarkTimer = null;
+            }
+        var sum = 0;
+        var fastest = Number.MAX_VALUE;
+        var slowest = -Number.MAX_VALUE;
+        this.benchmarkTimes.map(function(v){
+            sum += v;
+            fastest = Math.min(v, fastest);
+            slowest = Math.max(v, slowest);
+            });
+        sum -= fastest;
+        sum -= slowest;
+        var avg = sum / (this.benchmarkPointer-2);
+        document.getElementById('benchmarkResult').innerHTML =
+            'average exec time for ' +
+            this.benchmarkMaxSites +
+            ' sites = ' +
+            avg.toFixed(1) + ' ms ' +
+            ' (' + (avg*1000/this.benchmarkMaxSites).toFixed(1) + ' µs/site)' +
+            ', fastest = ' + fastest + ' ms, slowest = ' + slowest + ' ms.'
+            ;
+        document.getElementById('voronoiBenchmark').value = 'Benchmark';
+        },
+
+    clearSites: function() {
+        this.sites = [];
+        this.diagram = this.voronoi.compute(this.sites, this.bbox);
+        this.updateStats();
+        },
+
+    randomSites: function(n,clear) {
+        if (clear) {this.sites = [];}
+        // create vertices
+        var xmargin = this.canvas.width*this.margin,
+            ymargin = this.canvas.height*this.margin,
+            xo = xmargin,
+            dx = this.canvas.width-xmargin*2,
+            yo = ymargin,
+            dy = this.canvas.height-ymargin*2;
+        for (var i=0; i<n; i++) {
+            this.sites.push({
+                x: xo + Math.random()*dx + Math.random()/dx,
+                y: yo + Math.random()*dy + Math.random()/dy
+                });
+            }
+        this.voronoi.recycle(this.diagram);
+        this.diagram = this.voronoi.compute(this.sites, this.bbox);
+        this.updateStats();
+        },
+
+    recompute: function() {
+        this.diagram = this.voronoi.compute(this.sites, this.bbox);
+        this.updateStats();
+        },
+
+    updateStats: function() {
+        if (!this.diagram) {return;}
+        var e = document.getElementById('voronoiStats');
+        if (!e) {return;}
+        e.innerHTML = '('+this.diagram.cells.length+' Voronoi cells computed from '+this.diagram.cells.length+' Voronoi sites in '+this.diagram.execTime+' ms &ndash; rendering <i>not</i> included)';
+        },
+
+    render: function() {
+        var ctx = this.canvas.getContext('2d');
+        // background
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.rect(0,0,this.canvas.width,this.canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.strokeStyle = '#888';
+        ctx.stroke();
+        // voronoi
+        if (!this.diagram) {return;}
+        // edges
+        ctx.beginPath();
+        ctx.strokeStyle = '#000';
+        var edges = this.diagram.edges,
+            iEdge = edges.length,
+            edge, v;
+        while (iEdge--) {
+            edge = edges[iEdge];
+            v = edge.va;
+            ctx.moveTo(v.x,v.y);
+            v = edge.vb;
+            ctx.lineTo(v.x,v.y);
+            }
+        ctx.stroke();
+        // edges
+        ctx.beginPath();
+        ctx.fillStyle = 'red';
+        var vertices = this.diagram.vertices,
+            iVertex = vertices.length;
+        while (iVertex--) {
+            v = vertices[iVertex];
+            ctx.rect(v.x-1,v.y-1,3,3);
+            }
+        ctx.fill();
+        // sites
+        ctx.beginPath();
+        ctx.fillStyle = '#44f';
+        var sites = this.sites,
+            iSite = sites.length;
+        while (iSite--) {
+            v = sites[iSite];
+            ctx.rect(v.x-2/3,v.y-2/3,2,2);
+            }
+        ctx.fill();
+        },
+    };
+
+
+    VoronoiDemo.init();
+    
+</script>
+
+
+
+</body></html>

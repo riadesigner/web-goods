@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+  <meta charset="utf-8">
+  
+  
+<script type="text/javascript" src="rhill-voronoi-core.js"></script>
+
+  <title>Voronoi</title>
+
+  <style>
+  	
+  	#canvas-1{
+  		background: gold;
+  	}
+
+  </style>
+</head>
+  <body>
+    
+
+<canvas resize="true" id="canvas-1" width="400" height="400" 
+	style="-webkit-user-drag: none; user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+</canvas>
+
+
+<script>
+
+
+var VoronoiPicture = {
+	init:function(canvasId,opt) {
+		this.voronoi = new Voronoi();
+		this.opt = opt; 
+		this.canvas = document.getElementById(canvasId);
+		this.ctx = this.canvas.getContext('2d');		
+		this.bbox = {xl: 0,xr: this.canvas.offsetWidth,yt: 0,yb: this.canvas.offsetHeight};
+		this.sites = this.createSites(this.opt.sites_grid,this.opt.sites_amount);
+		this.diagram = this.voronoi.compute(this.sites, this.bbox);
+		this.render();
+	},
+	createSites:function(grid,amount) {
+		var arr = []; 
+		var stepX = this.canvas.offsetWidth/grid;
+		var stepY = this.canvas.offsetHeight/grid;
+		for(var i=stepX;i<stepX*grid;i+=stepX){
+			for(var j=stepY;j<stepY*grid;j+=stepY){
+					arr.push({x:i,y:j});							
+			}
+		};
+		arr.sort(() => .5 - Math.random());		
+		var total = Math.min(amount,arr.length);
+		return arr.splice(0,total);
+	},	
+	drawPoints:function(arr,color,size){        
+        var color = color?color:"black";
+        this.ctx.save();
+        this.ctx.fillStyle = color;
+		for(var i in arr){                
+			this.ctx.fillRect(arr[i].x-size/2,arr[i].y-size/2,size,size);
+		}
+		this.ctx.resore();
+	},
+    render: function() {            
+        // background
+        console.log(this.diagram)
+        this.ctx.globalAlpha = 1;
+        this.ctx.beginPath();
+        this.ctx.rect(0,0,this.canvas.offsetWidth,this.canvas.offsetHeight);
+        this.ctx.fillStyle = 'navy';
+        this.ctx.fill();                
+        // voronoi
+        if (!this.diagram) {return;}
+        // --- edges ---
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = 'white';
+        
+        var edges = this.diagram.edges;
+        for(var i in edges){
+        	var edge = edges[i];
+            v = edge.va;
+            this.ctx.moveTo(v.x,v.y);
+            v = edge.vb;
+            this.ctx.lineTo(v.x,v.y);
+        }
+        this.ctx.stroke();
+        // --- vertex ---
+        this.ctx.beginPath();
+        this.ctx.fillStyle = 'yellow';        
+        var vertices = this.diagram.vertices;
+        for (var i in vertices){
+            var v = vertices[i];
+            this.ctx.rect(v.x-2,v.y-2,4,4);
+        }
+        this.ctx.fill();
+        // --- sites ---
+        this.ctx.beginPath();
+        this.ctx.fillStyle = 'red';
+        var arr = this.sites;
+        for (var i in arr){
+            var v = arr[i];
+            this.ctx.rect(v.x-5,v.y-5,10,10);        	
+        }
+        this.ctx.fill();
+    }	
+};
+
+VoronoiPicture.init('canvas-1',{sites_grid:10,sites_amount:10});
+
+
+</script>
+
+
+
+</body></html>
