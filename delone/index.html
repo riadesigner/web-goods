@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>
+		Триангуляция Делоне
+	</title>
+	
+<style type="text/css">
+	body{
+		padding:10px 50px;
+		font-family: arial;
+	}
+</style>
+</head>
+<body>
+
+<h1>Триангуляция Делоне</h1>
+<p>Программа дорисовывает треугольники</p>
+<p><strong>Чтобы нарисовать точку – клик мышкой</strong></p>
+
+<canvas id='canvas' width='400' height='400' style="border:1px solid black;"></canvas>
+
+<br><br>
+
+<button id="btnDrawTri">дорисовать</button>
+<button id="btnRandomTri">заполнить случайными</button>
+<button id="btnClear">очистить</button>
+
+
+<script type="module" >
+
+import {Delaunay} from "https://cdn.skypack.dev/d3-delaunay@6";
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const btnClear = document.getElementById('btnClear');
+const btnDrawTri = document.getElementById('btnDrawTri');
+const btnRandomTri = document.getElementById('btnRandomTri');
+
+let points = [];
+
+var foo = {
+	drawTriangles:function(points) {
+		points.push([0, 0]);
+		points.push([0, canvas.height]);
+		points.push([canvas.width, 0]);
+		points.push([canvas.width, canvas.height]);
+		const delaunay = Delaunay.from(points);
+		const {triangles} = delaunay;	
+
+
+		console.log('points',points)
+		console.log('delaunay',delaunay)
+		console.log('triangles',triangles)
+
+
+		this._draw(points,triangles);			
+	},
+	_draw:function(points,triangles) {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		for (let i = 0; i < triangles.length; i += 3) {
+		  const x1 = points[triangles[i]][0];
+		  const y1 = points[triangles[i]][1];
+		  const x2 = points[triangles[i+1]][0];
+		  const y2 = points[triangles[i+1]][1];
+		  const x3 = points[triangles[i+2]][0];
+		  const y3 = points[triangles[i+2]][1];		  
+		  ctx.beginPath();
+		  ctx.moveTo(x1, y1);
+		  ctx.lineTo(x2, y2);
+		  ctx.lineTo(x3, y3);
+		  ctx.closePath();
+		  ctx.stroke();				  
+		}
+		for(let p in points){
+			foo.drawPoint(points[p][0],points[p][1]); 
+		}
+		points = [];			
+	},
+	clearAll:function() {
+		points = [];		
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+	},
+	drawPointFromMouse:function(e) {
+		// console.log(e.pageX,e.pageY) // (глобальная позиция курсора)
+		// console.log(e.offsetX,e.offsetY) // (внутри canvas)			
+		points.push([e.offsetX, e.offsetY]);
+		foo.drawPoint(e.offsetX, e.offsetY);
+	},
+	drawPoint:function(x,y) {
+		ctx.fillRect(x-5,y-5,10,10);
+	},
+	redrawTriangles:function() {
+		foo.drawTriangles(points);	
+	},
+	redrawRandom:function() {
+		points = [];
+		for (let i = 0; i < 10; i++) {
+		  const x = Math.random() * canvas.width;
+		  const y = Math.random() * canvas.height;
+		  points.push([x, y]);
+		}
+		foo.redrawTriangles();
+	}
+};
+
+
+
+canvas.addEventListener("click",foo.drawPointFromMouse,false);
+btnClear.addEventListener("click",foo.clearAll,false);
+btnDrawTri.addEventListener("click",foo.redrawTriangles,false);
+btnRandomTri.addEventListener("click",foo.redrawRandom,false);
+
+
+
+</script>
+
+
+
+</body>
+</html>

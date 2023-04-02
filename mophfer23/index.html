@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="./js/morpher.js"></script>
+    <title>Morph 23</title>
+    <link rel="stylesheet" type="text/css" href="./css/style.css">
+
+</head>
+<body>
+
+<h3>Программа для морфига картинок v.01</h3>
+
+<div id="m-dropper">закиньте сюда два изображения</div>
+
+<div id="m-all-app" >
+    <div id="m-main-win" >
+        <div class="m-subwin" id="m-subwin-1"></div>
+        <div class="m-subwin" id="m-subwin-2"></div>
+    </div>    
+    <br>
+    <!-- <button class="m-btn" id="m-btn-get-code">пересчитать</button> -->    
+    <button class="m-btn" id="m-btn-export-images">Экспорт</button>
+    <button class="m-btn" id="m-btn-preview">Просмотр</button>
+</div>
+
+<div id="m-download-container"></div>
+
+<script type="module" >
+
+import {Dropper} from "./jsm/dropper.js";
+
+Dropper.init();
+
+    
+
+
+</script>    
+
+</body>
+</html>

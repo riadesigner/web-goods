@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>PIXI Morphing</title>
+
+	<!-- <script src="pixi.min-6-1-2.js"></script> -->
+	<script src="pixi.js"></script>
+	<!-- <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script> -->
+
+
+</head>
+<body>
+
+	<canvas id="myCanvas"></canvas>
+
+	<img src="img.jpg">
+
+<script >
+
+
+
+
+const app = new PIXI.Application({
+  view: document.getElementById("myCanvas"),
+  width: 500,
+  height: 500
+});
+
+const texture = PIXI.Texture.from("img.jpg");
+
+
+
+const mesh = new PIXI.SimpleMesh(
+  texture,
+  new Float32Array([
+    0, 0, // vertex 0
+    0, 100, // vertex 1
+    100, 100, // vertex 2
+    100, 0 // vertex 3
+  ]),
+  new Uint16Array([
+    0, 1, 2, // triangle 1
+    2, 3, 0 // triangle 2
+  ])
+);
+app.stage.addChild(mesh);
+
+
+app.ticker.add((delta) => {
+  for (let i = 0; i < mesh.vertices.length; i++) {
+    const vertex = mesh.vertices[i];
+    vertex.y += Math.sin(vertex.x / 20 + app.ticker.lastTime / 100) * 10;
+  }
+  mesh.dirty++;
+});
+
+
+app.render();
+
+
+
+
+</script>
+
+</body>
+</html>
